@@ -32,8 +32,8 @@ class MELegislatorScraper(LegislatorScraper):
                 len(x.xpath('a')) == 3]
         for district in districts:
             if "- Vacant" in district.text_content():
-                self.warning("District is vacant: '{}'".
-                             format(district.text_content()))
+                self.logger.warning('Vacant seat in {} District {}.'.format(
+                    self.metadata['chambers'][chamber]['name'], district))
                 continue
 
             district_number = district.xpath('a[1]/@name')[0]
@@ -195,13 +195,14 @@ class MELegislatorScraper(LegislatorScraper):
             district = d['district'].split('.')[0]
 
             # Determine legislator's URL to get their photo
-
             URL_XPATH = '//address[contains(text(), "(District {})")]/a/@href'. \
                     format(district)
 
             try:
                 (leg_url, ) = roster_doc.xpath(URL_XPATH)
             except ValueError:
+                self.logger.warning('Vacant seat in {} District {}.'.format(
+                    self.metadata['chambers'][chamber]['name'], district))
                 continue # Seat is vacant
 
             leg = Legislator(term, chamber, district, full_name,
